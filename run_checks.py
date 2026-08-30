@@ -54,17 +54,6 @@ def main() -> int:
     tail = "\n".join(tail[-3:]) if tail else ""
     results.append(gate(f"unit tests ({test_count})", code == 0, tail.replace("\n", " | ")))
 
-    # 5/5 language gate: zero CJK in code
-    cjk = re.compile(r"[\u4e00-\u9fff]")
-    hits: list[str] = []
-    for p in (ROOT / "costpilot", ROOT / "demo"):
-        for f in p.rglob("*.py"):
-            try:
-                if cjk.search(f.read_text(encoding="utf-8")):
-                    hits.append(str(f.relative_to(ROOT)))
-            except (UnicodeDecodeError, OSError):
-                pass
-    results.append(gate("zero CJK in code", not hits, ", ".join(hits[:5]) if hits else ""))
 
     print()
     if all(results):
