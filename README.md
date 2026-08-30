@@ -76,11 +76,14 @@ On Windows, activate the venv with `.venv\Scripts\activate` instead.
 - The agent never touches a raw shell. Git subcommands and flags are allowlisted, branch names must start with `costpilot/`, commit messages with `costpilot:`.
 - A change needs two approvals: the agent's and the rule allowlist. In our live run, the LLM approved a constant-derived model swap; the rule layer blocked it.
 - If validation fails, the working tree is rolled back. No commit, no change request, nothing left dirty.
+- The scan endpoint is hardened against hostile input: empty input, JavaScript, malformed Python, oversized files, and script tags inside model names are all handled with errors, not crashes. The tests are in `costpilot/tests/test_demo_endpoint.py` and `costpilot/tests/test_xss_contract.py`.
 - The agent sees structured facts (file, line, model, confidence, cost), not your source code. The schema is constrained, and every write still passes the policy gate.
 
 ## On honesty
 
 Most real-world LLM calls (~95%) use models we can't price from public data. CostPilot says "unknown" and keeps the code as is. No guesswork, no made-up numbers. Every saving is labeled as price potential from public rate cards, not a realized bill. The web demo shows its working: the Pricing basis panel lists the exact unit prices (USD per 1M tokens, 2026-08 snapshot from vendor public pricing pages) and the token assumptions (~3.5 chars/token, output 512 tokens unless set), so anyone can reproduce the math by hand.
+
+The pricing table covers nine models today: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, claude-sonnet-4-5, claude-opus-4, claude-haiku-3-5, claude-3-5-haiku. That list is small on purpose: adding a model means adding one verified row with a vendor pricing link, and nothing else changes.
 
 ## Downgrade safety criteria
 
