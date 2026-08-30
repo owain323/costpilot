@@ -3,7 +3,7 @@
 
 Equivalent to run_checks.sh but runs anywhere Python does — no bash, no
 Git Bash, no WSL required. Judge opens the zip, runs this file, sees the
-same five gates.
+same four gates.
 
 Usage:
     python run_checks.py            # uses the python on PATH
@@ -34,19 +34,19 @@ def main() -> int:
     py = sys.argv[1] if len(sys.argv) > 1 else sys.executable
     results: list[bool] = []
 
-    # 1/5 ruff format --check
+    # 1/4 ruff format --check
     code, out = run([py, "-m", "ruff", "format", "--check", "costpilot", "demo"])
     results.append(gate("ruff format --check", code == 0, out.splitlines()[-1] if out else ""))
 
-    # 2/5 ruff check
+    # 2/4 ruff check
     code, out = run([py, "-m", "ruff", "check", "costpilot", "demo"])
     results.append(gate("ruff check (zero tolerance)", code == 0, out.splitlines()[-1] if out else ""))
 
-    # 3/5 mypy
+    # 3/4 mypy
     code, out = run([py, "-m", "mypy", "costpilot", "--no-incremental"])
     results.append(gate("mypy", code == 0, out.splitlines()[-1] if out else ""))
 
-    # 4/5 unit tests
+    # 4/4 unit tests
     code, out = run([py, "-m", "unittest", "discover", "-s", "costpilot/tests"])
     match = re.search(r"Ran (\d+) tests", out)
     test_count = match.group(1) if match else "?"

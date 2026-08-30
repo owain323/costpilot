@@ -33,5 +33,5 @@ examples/artifacts/
 .env
 # local dot-directories (envs, caches, assistant state)
 .*/
-!.hooks-local/
+.hooks-local/
 !.github/
