@@ -1,0 +1,18 @@
+#!/bin/sh
+# pre-commit: block CJK filenames/content from being committed.
+# Fail-closed: if no python can be found, the commit is blocked.
+# NOTE: git runs hooks from the repo root, so the checker is referenced
+# with a relative path (absolute MSYS paths get mangled on Windows).
+PYBIN=""
+for candidate in python python3 py \
+  ".venv/Scripts/python.exe" ".venv/bin/python"; do
+  if command -v "$candidate" >/dev/null 2>&1; then
+    PYBIN="$candidate"
+    break
+  fi
+done
+if [ -z "$PYBIN" ]; then
+  echo "cjk-gate: no python interpreter found; blocking commit (fail-closed)" >&2
+  exit 1
+fi
+exec "$PYBIN" .hooks-local/check_no_cjk.py pre-commit

@@ -1,0 +1,37 @@
+# --- Python ---
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+costpilot.egg-info/
+
+# --- benchmark reference data (self-healing: fetched on demand, see repos.json) ---
+benchmark/repos/
+benchmark/demo_agentic_repo/
+benchmark/demo_repo/
+benchmark/artifacts/*
+# keep one real change-request sample in the repo (referenced from README);
+# note: the exclusion must be file-level (`/*`), a directory-level rule
+# (benchmark/artifacts/) makes the negation below unreachable
+!benchmark/artifacts/costpilot__optimize.md
+
+# local working documents at repo root (never published)
+/*.md
+!/README.md
+!/AGENTS.md
+*.zip
+p0_minimal_agent.py
+
+# --- demo repo lives as its own standalone GitHub repository ---
+examples/costpilot-demo/
+# local-only PR artifact copies (the public evidence lives in the GitHub PR
+# and in benchmark/artifacts/costpilot__optimize.md)
+examples/artifacts/
+
+# --- env / local ---
+.env
+# local dot-directories (envs, caches, assistant state)
+.*/
+!.hooks-local/
+!.github/

@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o",
+  "calls": 1000,
+  "input_tokens": 5000000,
+  "output_tokens": 1000000
+}

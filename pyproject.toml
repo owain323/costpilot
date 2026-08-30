@@ -1,0 +1,45 @@
+[project]
+name = "costpilot"
+version = "0.1.0"
+description = "The AI cost-optimization agent that only acts on what it can prove."
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "strands-agents[ollama]>=1.52.0",
+    "strands-agents-tools>=0.8.6",
+    "ollama>=0.6.2",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.16", "mypy>=2.3", "pytest>=8.0"]
+bedrock = ["boto3>=1.34"]  # optional Bedrock provider (needs AWS credentials)
+# Web demo: FastAPI + Uvicorn. Static analysis works without it.
+demo = ["fastapi>=0.110", "uvicorn>=0.27"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["costpilot"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# third-party benchmark repos are reference data, not our code
+extend-exclude = ["benchmark/repos/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+check_untyped_defs = true
+disallow_untyped_defs = false
+warn_return_any = true
+warn_unused_ignores = true
+# fixtures intentionally mock external SDKs; excluded from type checking
+exclude = "costpilot/tests/(fixtures|fixtures_injection|fixtures_real)/"
+

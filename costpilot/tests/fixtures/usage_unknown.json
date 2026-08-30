@@ -1,0 +1,7 @@
+{
+  "provider": "some-vendor",
+  "model": "mystery-model-v9",
+  "calls": 500,
+  "input_tokens": 2000000,
+  "output_tokens": 500000
+}

@@ -1,0 +1,10 @@
+{
+  "vanna": {
+    "url": "https://codeload.github.com/vanna-ai/vanna/tar.gz/365d0617c1a4567ffee1b19b40c27feb4206bfcf",
+    "sha": "365d0617c1a4567ffee1b19b40c27feb4206bfcf"
+  },
+  "pandas-ai": {
+    "url": "https://codeload.github.com/Sinaptik-AI/pandas-ai/tar.gz/bbbb771d31062d81f6fa19bafb40620d5cbe48f4",
+    "sha": "bbbb771d31062d81f6fa19bafb40620d5cbe48f4"
+  }
+}

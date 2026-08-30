@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CostPilot finds the LLM calls in your code, prices them against public rate cards, and shows what a conservative model downgrade would save.">
+<meta name="google" content="notranslate">
+<meta name="robots" content="noindex">
+<title>CostPilot</title>
+<style>
+:root{
+  --ink:#0a0a0a; --ink2:#1f2328; --muted:#5b6168; --muted2:#8a8f96;
+  --line:#e1e4e8; --line2:#d0d7de; --bg:#ffffff; --bg2:#f6f8fa;
+  --blue:#0969da; --blue-dark:#0550ae; --blue-weak:#ddf4ff;
+  --green:#1a7f37; --green-weak:#dafbe1;
+  --amber:#9a6700; --amber-weak:#fff8c5;
+  --gray:#57606a; --gray-weak:#eaeef2;
+  --red:#cf222e; --red-weak:#ffebe9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{background:var(--bg);color:var(--ink2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+/* thin, quiet scrollbars everywhere (VS Code style): 6px, translucent,
+   only darkening on hover. Overlay-style, never bulky. */
+*{scrollbar-width:thin;scrollbar-color:rgba(150,158,168,.55) transparent}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(150,158,168,.55);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:rgba(120,130,140,.85)}
+::-webkit-scrollbar-corner{background:transparent}
+.wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+
+nav{display:flex;align-items:center;padding:20px 0;border-bottom:1px solid var(--line);margin-bottom:24px}
+nav .name{font-weight:700;font-size:15.5px;color:var(--ink);letter-spacing:-.2px}
+nav a{margin-left:auto;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500}
+nav a:hover{color:var(--blue)}
+
+h1{font-size:28px;font-weight:800;letter-spacing:-.7px;margin-bottom:8px;color:var(--ink);line-height:1.2}
+p.sub{color:var(--ink2);font-size:14.5px;max-width:680px;margin-bottom:18px;line-height:1.55}
+
+.steps{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:13px;color:var(--muted);font-weight:500}
+.steps span{display:flex;align-items:center;gap:7px}
+.steps .num{width:20px;height:20px;border-radius:50%;background:var(--bg2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);font-weight:600;font-family:Consolas,monospace}
+.steps .sep{color:var(--line2);margin:0 4px;font-weight:400}
+
+.page-grid{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:stretch}
+
+/* left column: column-flex so the editor fills the column; the column is at
+   least one viewport tall so the sidebar keeps a stable ~4-5 visible cards. */
+.main-col{display:flex;flex-direction:column;min-width:0;min-height:calc(100vh - 130px)}
+.main-col > #summary{display:none;flex:0 0 auto;margin-bottom:22px}
+.main-col > #summary.show{display:block}
+.main-col > .editor-actions{flex:0 0 auto}
+#summary{display:none;margin-bottom:22px}
+#summary.show{display:block}
+/* pricing basis: collapsible strip below the summary, quiet by default.
+   Expands to show the public unit prices for models in this scan. */
+.pricing-basis{margin-bottom:18px;flex:0 0 auto}
+.pricing-basis.hidden{display:none}
+.pb-toggle{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 14px;background:var(--bg2);cursor:pointer;font-size:12.5px;color:var(--muted);transition:border-color .12s,background .12s}
+.pb-toggle:hover{border-color:var(--blue);color:var(--ink2)}
+.pb-label{font-weight:600;color:var(--ink2)}
+.pb-sub{flex:1;text-align:right;font-size:11.5px;color:var(--muted2)}
+.pb-arrow{font-size:11px;color:var(--muted);transition:transform .15s}
+.pb-toggle[aria-expanded="true"] .pb-arrow{transform:rotate(180deg)}
+.pb-body{display:none;border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;background:#fff;overflow:hidden}
+.pb-body.open{display:block}
+.pb-body table{width:100%;border-collapse:collapse;font-size:12px}
+.pb-body th{text-align:left;font-weight:600;color:var(--muted);padding:8px 14px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.pb-body th.r,.pb-body td.r{text-align:right}
+.pb-body td{padding:7px 14px;border-bottom:1px solid var(--bg2);color:var(--ink2);font-feature-settings:"tnum"}
+.pb-body td.model{font-family:Consolas,Menlo,"Courier New",monospace;font-size:11.5px;color:var(--ink)}
+.pb-body td.price{font-family:Consolas,Menlo,"Courier New",monospace;font-size:11.5px}
+.pb-body td.na{color:var(--muted2);font-style:italic}
+.pb-body tr:last-child td{border-bottom:0}
+.pb-body .pb-foot{padding:8px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--bg2);background:var(--bg2)}
+.summary{border:1px solid var(--line);border-radius:10px;padding:20px 24px;background:var(--bg2);display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.summary .save{font-size:42px;font-weight:800;letter-spacing:-1.8px;color:var(--green);line-height:1;font-feature-settings:"tnum"}
+.summary .save small{font-size:12px;color:var(--muted);font-weight:500;display:block;letter-spacing:.3px;margin-top:6px}
+.summary .cf{color:var(--ink2);font-size:14.5px;line-height:1.6;flex:1;min-width:240px}
+.summary .cf b{font-weight:700;color:var(--ink)}
+.summary .cf .from{color:var(--red)}
+.summary .cf .to{color:var(--green)}
+.compare{width:100%;margin-top:14px}
+.compare .cb{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:3px}
+.compare .track{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex}
+.compare .track .b{height:100%;border-radius:4px;transition:width .6s ease}
+.compare .track .before{background:var(--red)}
+.compare .track .after{background:var(--green)}
+
+.editor-actions{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+button{font-size:14px;cursor:pointer;border-radius:6px;transition:background .12s,color .12s}
+#run{background:var(--blue);color:#fff;border:1px solid var(--blue);padding:9px 20px;font-weight:600;box-shadow:0 1px 0 rgba(27,31,36,.1)}
+#run:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
+#run:disabled{opacity:.55;cursor:wait}
+.editor-actions.ready #run{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(9,105,218,.55),0 1px 0 rgba(27,31,36,.1)}50%{box-shadow:0 0 0 8px rgba(9,105,218,0),0 1px 0 rgba(27,31,36,.1)}}
+.editor-actions .nudge{display:none;font-size:12.5px;color:var(--blue);font-weight:600;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0);opacity:1}50%{transform:translateX(6px);opacity:.55}}
+.editor-actions.ready .nudge{display:inline-block}
+#sample{background:none;border:0;color:var(--blue);padding:7px 4px;font-size:13.5px;font-weight:500}
+#sample:hover{text-decoration:underline}
+.hint{font-size:12.5px;color:var(--muted);margin-left:auto}
+
+.demo-scenarios{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.demo-scenarios .ds-label{font-weight:600;color:var(--ink2);margin-right:3px}
+.demo-scenarios .scenario{background:#fff;border:1px solid var(--line2);color:var(--ink2);padding:5px 13px;border-radius:999px;font-size:12.5px;font-weight:500;transition:background .12s,border-color .12s,color .12s}
+.demo-scenarios .scenario:hover{border-color:var(--blue);background:var(--blue-weak);color:var(--blue-dark)}
+
+.editor{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--bg2);display:flex;transition:border-color .15s,background .15s;flex:1;min-height:540px;max-height:70vh}
+.editor:focus-within{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(9,105,218,.12)}
+/* single scroll container: gutter + code + textarea share one scroll context,
+   so line numbers and text can never drift apart (no transform hack needed) */
+.editor-scroll{flex:1;overflow:auto;min-height:0}
+.editor-row{display:flex;min-width:max-content;min-height:100%}
+.gutter{width:46px;flex:none;padding:16px 10px 16px 12px;text-align:right;font:13.5px/1.7 Consolas,Menlo,"Courier New",monospace;color:#b6bdc6;user-select:none;border-right:1px solid var(--line);background:var(--bg2);position:sticky;left:0;z-index:2}
+.editor-body{flex:1;position:relative;min-width:0;min-height:100%}
+.editor pre{margin:0;padding:16px;font:13.5px/1.7 Consolas,Menlo,"Courier New",monospace;white-space:pre;color:var(--ink);pointer-events:none;min-height:100%}
+.editor textarea{position:absolute;top:0;left:0;height:100%;min-width:100%;width:max-content;border:0;border-radius:0;padding:16px;font:13.5px/1.7 Consolas,Menlo,"Courier New",monospace;color:transparent;caret-color:var(--ink);background:transparent;resize:none;overflow:hidden;white-space:pre;outline:0;z-index:1}
+.editor textarea::selection{background:rgba(9,105,218,.22)}
+/* decorative hint inside the editor: shows only when the textarea is empty,
+   sits above the textarea (not selectable, not focusable), never the user's text */
+.editor-hint{position:absolute;left:0;top:0;right:0;padding:14px 16px 16px;pointer-events:none;user-select:none;font:13.5px/1.7 Consolas,Menlo,"Courier New",monospace;color:#b6bdc6;z-index:0}
+.editor-hint.hidden{display:none}
+.editor-hint .lead{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:13.5px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.editor-hint .lead::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#b6bdc6}
+.editor-hint .row{display:block}
+.editor-hint .row .k{color:#a8b3bf}
+.editor-hint .row .s{color:#cf222e;opacity:.75}
+/* syntax highlight: only model= value gets red (warning), strings green, keywords purple */
+.hl-c{color:#6e7781}.hl-s{color:#22863a}.hl-k{color:#7c3aed}.hl-n{color:#0550ae}.hl-mk{color:#0550ae;font-weight:600}.hl-mv{color:#cf222e;font-weight:700}
+/* lines that contain model= get a warm background (the thing we hunt) */
+.hl-line{background:rgba(255,208,86,.16);border-radius:2px}
+.hl-line.active{background:rgba(255,208,86,.34)}
+/* gutter marker: subtle dot, no bold, no gold (let the code row own the colour) */
+.gutter .mark{color:var(--muted);position:relative}
+.gutter .mark::after{content:"";position:absolute;left:-2px;top:9px;width:5px;height:5px;border-radius:50%;background:#e3b341}
+
+.loading{margin-top:12px;color:var(--muted);font-size:13.5px}
+.err{margin-top:12px;background:var(--red-weak);border:1px solid #ffcecb;color:var(--red);border-radius:6px;padding:11px 14px;font-size:13.5px;font-weight:500}
+
+/* right sidebar: the dynamic "Proposed changes" card fills the column and
+   keeps a guaranteed height so ~4-5 cards are always visible; more content
+   scrolls with the thin bar. The two static cards stay compact. */
+.side{display:flex;flex-direction:column;gap:14px;min-height:100%}
+.scard{border:1px solid var(--line);border-radius:10px;background:#fff;display:flex;flex-direction:column;overflow:hidden;flex:0 0 auto}
+.scard.dynamic{flex:1 1 0;min-height:300px}
+.scard.dynamic .sbody{overflow-y:auto}
+.scard .stitle{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);padding:11px 16px;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.scard .stitle .cnt{display:flex;align-items:center;gap:8px}
+.scard .stitle .cnt .legend{width:22px;height:22px;border-radius:50%;background:var(--bg2);color:var(--muted);font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0;cursor:pointer;line-height:1;transition:background .12s,color .12s}
+.scard .stitle .cnt .legend:hover{background:var(--blue);color:#fff}
+.scard .stitle .cnt #dcCnt{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+.scard .sbody{padding:12px 16px;font-size:13px}
+.scard .sbody .dim{color:var(--muted);font-size:12.5px;line-height:1.55}
+
+/* change card in sidebar: always expanded, tight, scannable */
+.dc{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--bg2);transition:border-color .12s,box-shadow .12s;cursor:default}
+.dc:last-child{margin-bottom:0}
+.dc:hover{border-color:var(--blue);box-shadow:0 2px 10px rgba(9,105,218,.14)}
+.dc.active{border-color:var(--blue);background:#fff;box-shadow:0 2px 10px rgba(9,105,218,.14)}
+.dc.active .dch .ln{border-color:var(--blue);color:var(--blue)}
+.dc .dch{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dc .dch .ln{font-family:Consolas,monospace;font-size:11.5px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-weight:600}
+.dc .dl{color:var(--red);font-family:Consolas,monospace;font-size:12px;text-decoration:line-through;opacity:.85;display:block;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc .da{color:var(--green);font-family:Consolas,monospace;font-size:12px;font-weight:700;display:block;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dc .ds{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}
+.dc .dpct{font-size:15px;color:var(--green);font-weight:800;font-feature-settings:"tnum"}
+/* decision pills: approve / keep / human-review */
+.pill{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-radius:999px;padding:2px 8px;line-height:1.5;display:inline-block;vertical-align:1px}
+.pill.approve{background:var(--green-weak);color:var(--green);border:1px solid rgba(26,127,55,.28)}
+.pill.keep{background:var(--gray-weak);color:var(--gray);border:1px solid rgba(87,96,106,.28)}
+.pill.human{background:var(--amber-weak);color:var(--amber);border:1px solid rgba(154,103,0,.28)}
+
+.review .kv{display:flex;gap:10px;margin:7px 0;color:var(--muted);font-size:12.5px}
+.review .kv b{color:var(--ink);min-width:96px;font-weight:600;flex:none}
+.review .kv > :last-child{min-width:0;overflow-wrap:anywhere}
+.review .sign{margin-top:12px;padding:10px 12px;background:var(--blue-weak);border:1px solid rgba(9,105,218,.2);border-radius:6px;font-size:12px;color:var(--blue-dark);font-weight:500}
+.review.recorded .sbody a{color:var(--blue);text-decoration:none;font-size:12.5px}
+.review.recorded .sbody a:hover{text-decoration:underline}
+.scard .stitle .sub{font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted);background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.review a{display:inline-block;margin-top:10px;font-size:13px;color:var(--blue);text-decoration:none}
+.review a:hover{text-decoration:underline}
+
+/* badge legend modal: explains the four verdicts, centered, one glance */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,25,30,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px;opacity:0;pointer-events:none;transition:opacity .18s ease}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{background:#fff;border:1px solid var(--line);border-radius:14px;max-width:480px;width:100%;box-shadow:0 18px 50px rgba(20,25,30,.25);max-height:calc(100vh - 48px);overflow-y:auto;transform:translateY(-8px) scale(.98);transition:transform .2s cubic-bezier(.2,.7,.2,1)}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal .mhead{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+.modal .mhead .mt{font-size:14.5px;font-weight:700;color:var(--ink)}
+.modal .mclose{border:0;background:var(--bg2);border-radius:6px;width:26px;height:26px;font-size:16px;line-height:1;color:var(--muted);cursor:pointer}
+.modal .mclose:hover{color:var(--ink);background:var(--line)}
+.modal .mbody{display:flex;flex-direction:column;gap:14px;padding:18px 20px 4px}
+.modal .mcard{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:start}
+.modal .mcard .pill{align-self:start;justify-self:start;min-width:96px;text-align:center;padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;line-height:1.4}
+.modal .mcard p{font-size:13px;color:var(--ink2);line-height:1.55;margin:2px 0 0}
+.modal .mcard p b{color:var(--ink);font-weight:700;margin-right:2px}
+.modal .mfoot{padding:10px 20px 18px;font-size:12px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);margin-top:8px}
+
+/* pill popover: hover any badge for an instant explanation */
+.popover{position:fixed;background:#1f2328;color:#fff;font-size:12px;line-height:1.55;padding:9px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);max-width:240px;z-index:40;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .14s ease,transform .14s ease}
+.popover.show{opacity:1;transform:translateY(0)}
+.popover b{font-weight:700;color:#fff;margin-right:2px}
+.popover::after{content:"";position:absolute;left:18px;bottom:-5px;width:10px;height:10px;background:#1f2328;transform:rotate(45deg)}
+
+footer{margin:32px 0 28px;border-top:1px solid var(--line);padding-top:16px;color:var(--ink2);font-size:13px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer span{font-weight:500}
+.hidden{display:none!important}
+
+@media (max-width:980px){
+  .page-grid{grid-template-columns:1fr}
+  .side{position:static;height:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="name">CostPilot</div>
+    <a href="https://github.com/owain323/costpilot" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+
+  <h1>Paste your code. See where the money goes.</h1>
+  <p class="sub">CostPilot finds the LLM calls in your code, prices them against public rate cards, and shows what a conservative model downgrade would save. It never modifies your code.</p>
+
+  <div class="steps">
+    <span><span class="num">1</span>Paste Python code</span><span class="sep">&#8594;</span>
+    <span><span class="num">2</span>Click Analyze</span><span class="sep">&#8594;</span>
+    <span><span class="num">3</span>Read the cost report</span>
+  </div>
+
+  <div class="page-grid">
+    <div class="main-col">
+      <div id="summary">
+        <div class="summary">
+          <div>
+            <div class="save" id="saveNum">-</div>
+            <small>estimated price potential per 1K calls</small>
+          </div>
+          <div class="cf" id="cfText"></div>
+          <div class="compare">
+            <div class="cb" id="compareLbl"><span>before</span><span>after</span></div>
+            <div class="track" id="compareTrack"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="pricingBasis" class="pricing-basis hidden">
+        <button class="pb-toggle" id="pbToggle" aria-expanded="false">
+          <span class="pb-label">Pricing basis</span>
+          <span class="pb-sub" id="pbSub"></span>
+          <span class="pb-arrow" id="pbArrow">&#9662;</span>
+        </button>
+        <div class="pb-body" id="pbBody"></div>
+      </div>
+
+      <div class="editor-actions" id="actions">
+        <button id="run">Analyze</button>
+        <button id="sample">use sample code</button>
+        <span class="nudge" id="nudge">click Analyze &rarr;</span>
+        <span class="hint">scan only: no LLM calls, no git operations, nothing is stored</span>
+      </div>
+
+      <div class="demo-scenarios">
+        <span class="ds-label">Demo scenarios:</span>
+        <button class="scenario" data-scenario="find">Find an expensive model call</button>
+        <button class="scenario" data-scenario="unknown">Show an unknown model</button>
+        <button class="scenario" data-scenario="rejected">Show a rejected optimization</button>
+      </div>
+
+      <div class="editor">
+        <div class="editor-scroll" id="editorScroll">
+          <div class="editor-row">
+            <div class="gutter" id="gutter"></div>
+            <div class="editor-body">
+              <pre><code id="hl"></code></pre>
+              <textarea id="code" spellcheck="false" aria-label="Paste Python code to analyze" placeholder=""></textarea>
+              <div class="editor-hint" id="editorHint">
+                <div class="lead">Paste Python code that calls OpenAI, Anthropic or LangChain.</div>
+                <div class="row"><span class="k">from</span> openai <span class="k">import</span> OpenAI</div>
+                <div class="row">client = OpenAI()</div>
+                <div class="row">client.chat.completions.create(</div>
+                <div class="row">&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="s">&quot;gpt-4o&quot;</span>,</div>
+                <div class="row">&nbsp;&nbsp;&nbsp;&nbsp;messages=[{...}],</div>
+                <div class="row">)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading hidden">Scanning call sites and pricing them...</div>
+      <div id="err" class="err hidden"></div>
+    </div>
+
+    <aside class="side">
+      <div class="scard dynamic">
+        <div class="stitle"><span>Proposed changes</span><span class="cnt"><button class="legend" id="legendBtn" aria-label="What the badges mean">&#63;</button><span id="dcCnt">0</span></span></div>
+        <div class="sbody" id="diffList">
+          <div class="dim" id="diffEmpty">Paste code and click Analyze. Each candidate downgrade shows here with its exact before/after.</div>
+        </div>
+      </div>
+      <div class="scard review">
+        <div class="stitle"><span>This scan</span></div>
+        <div class="sbody" id="reviewBody">
+          <div class="kv"><b>Status</b>pending analysis</div>
+          <div class="kv"><b>Scope</b>static read-only: no branch, no tests, no PR</div>
+          <div class="sign">Run the local agentic loop to produce an actual PR.</div>
+        </div>
+      </div>
+      <div class="scard review recorded">
+        <div class="stitle"><span>Recorded run</span><span class="sub">costpilot-demo repo</span></div>
+        <div class="sbody">
+          <div class="kv"><b>Branch</b>costpilot/optimize</div>
+          <div class="kv"><b>Files</b>1 changed</div>
+          <div class="kv"><b>Saving</b>~80% per 1K calls</div>
+          <div class="kv"><b>Validation</b>syntax ok, tests passed</div>
+          <div class="kv"><b>Risk</b>price potential only; human reviews before merging</div>
+          <a href="https://github.com/owain323/costpilot-demo/pull/1" target="_blank" rel="noopener">see the real PR &#8599;</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <span>Savings are estimates from public rate cards. Unknown models are left alone.</span>
+    <span>Built with Strands Agents SDK</span>
+  </footer>
+
+  <div class="modal-overlay" id="statusModal" role="dialog" aria-modal="true" aria-labelledby="legendTitle">
+    <div class="modal">
+      <div class="mhead">
+        <span class="mt" id="legendTitle">What the badges mean</span>
+        <button class="mclose" id="modalClose" aria-label="Close">&#215;</button>
+      </div>
+      <div class="mbody">
+        <div class="mcard">
+          <span class="pill approve">APPROVE</span>
+          <p><b>Switch it.</b> The model is known, it has a price, and a cheaper one exists. CostPilot suggests the swap and shows the saving.</p>
+        </div>
+        <div class="mcard">
+          <span class="pill keep">KEEP</span>
+          <p><b>Leave it.</b> The model is already the cheapest option, or it is not in the price table. Either way there is nothing to change.</p>
+        </div>
+        <div class="mcard">
+          <span class="pill keep">NOT PRICED</span>
+          <p><b>No price to compute.</b> The model comes from a variable, so CostPilot cannot tell which one runs. It stays untouched.</p>
+        </div>
+        <div class="mcard">
+          <span class="pill human">HUMAN</span>
+          <p><b>Your call.</b> The model comes from a shared constant used in many places. Changing it is a bigger decision, so a human reviews it first.</p>
+        </div>
+      </div>
+      <div class="mfoot">CostPilot never changes your code. Every badge is a suggestion, not an edit.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let sampleLoaded = false;
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+// ---- syntax highlighting: only model= value gets red; everything else readable ----
+function highlight(code){
+  const KEYWORDS = '\\b(def|return|import|from|if|else|elif|for|while|in|not|and|or|with|as|class|None|True|False|pass|async|await|lambda|try|except|raise|global|yield)\\b';
+  const re = new RegExp('(#[^\\n]*)|("""[\\s\\S]*?"""|\'\'\'[\\s\\S]*?\'\'\'|"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')|(\\b\\d+(?:\\.\\d+)?\\b)|(' + KEYWORDS + ')', 'g');
+  let out = '', last = 0, m;
+  while((m = re.exec(code))){
+    out += esc(code.slice(last, m.index));
+    if(m[1]) out += '<span class="hl-c">'+esc(m[1])+'</span>';                    // comment (grey)
+    else if(m[2]){
+      // model="..." gets a pop: key blue, value red (only red highlight = warning)
+      const mm = m[2].match(/^(["'])model\1(\s*:\s*)?\s*(["'])([^"']*)\3$/);
+      if(mm) out += '<span class="hl-mk">'+esc(mm[1]+'model')+'</span>'
+                 +'<span class="hl-s">'+esc(mm[2]||'')+esc(mm[3])+'</span>'
+                 +'<span class="hl-mv">'+esc(mm[4])+'</span>'
+                 +'<span class="hl-s">'+esc(mm[3])+'</span>';
+      else out += '<span class="hl-s">'+esc(m[2])+'</span>';                       // string (green)
+    }
+    else if(m[3]) out += '<span class="hl-n">'+esc(m[3])+'</span>';               // number (blue)
+    else out += '<span class="hl-k">'+esc(m[4])+'</span>';                        // keyword (purple)
+    last = re.lastIndex;
+  }
+  out += esc(code.slice(last));
+  // wrap lines that set a model: warm background + data-line for click linkage.
+  // Skip lines inside an open triple-quoted string (their token spans are not
+  // closed on that line, wrapping them would break the markup).
+  const srcLines = code.split('\n');
+  const outLines = out.split('\n');
+  let inTriple = null;
+  for(let i=0;i<outLines.length;i++){
+    const src = srcLines[i] || '';
+    if(inTriple){
+      if(src.indexOf(inTriple) !== -1) inTriple = null;
+    }else{
+      const open = src.match(/("""|''')/);
+      if(open){
+        inTriple = src.slice(open.index + 3).includes(open[1]) ? null : open[1];
+      }
+    }
+    if(!inTriple && /model\s*=\s*["']/.test(src)){
+      // Wrap only from the model=... token to the end of the line, so the
+      // highlighted block aligns with the caret (which sits before 'model'),
+      // not from the line's leading whitespace. Since 'model' is not in the
+      // KEYWORDS list, it appears as plain text in outLine; the value after =
+      // is wrapped in <span class="hl-s">. We anchor on 'model=<span...' so
+      // we never accidentally match a 'model=' inside a string literal.
+      const outLine = outLines[i];
+      const eqIdx = outLine.indexOf('model=<span class="hl-s">');
+      if(eqIdx > 0){
+        outLines[i] = outLine.substring(0, eqIdx)
+          + '<span class="hl-line" data-line="'+(i+1)+'">'
+          + outLine.substring(eqIdx)
+          + '</span>';
+      } else {
+        outLines[i] = '<span class="hl-line" data-line="'+(i+1)+'">'+outLine+'</span>';
+      }
+    }
+  }
+  return outLines.join('\n');
+}
+const hlPre = document.getElementById('hl');
+const codeBox = document.getElementById('code');
+const gutter = document.getElementById('gutter');
+let hlTimer = null;
+function refreshHighlight(){
+  hlPre.innerHTML = highlight(codeBox.value);
+  const srcLines = codeBox.value.split('\n');
+  const n = srcLines.length;
+  let g = '';
+  for(let i=1;i<=n;i++){
+    const isModel = /model\s*=\s*["']/.test(srcLines[i-1] || '');
+    g += '<div class="'+(isModel ? 'mark' : '')+'" data-line="'+i+'">'+i+'</div>';
+  }
+  // empty snippet: no gutter row, so the empty editor is truly empty
+  gutter.innerHTML = n > 0 ? g : '';
+  syncTextareaWidth();
+}
+function syncTextareaWidth(){
+  // textarea must span the same scroll width as the highlighted layer so the
+  // caret follows horizontal scrolling inside the shared container.
+  const w = Math.max(hlPre.scrollWidth, codeBox.clientWidth);
+  codeBox.style.width = w + 'px';
+}
+codeBox.addEventListener('input', () => {
+  clearTimeout(hlTimer);
+  hlTimer = setTimeout(refreshHighlight, 60);
+});
+
+// nudge user to click Analyze once code is pasted; typing clears any error
+// and hides the decorative example hint behind the textarea
+const actionsEl = document.getElementById('actions');
+const nudgeEl = document.getElementById('nudge');
+const editorHint = document.getElementById('editorHint');
+function syncHint(){
+  editorHint.classList.toggle('hidden', codeBox.value.trim().length > 0);
+}
+codeBox.addEventListener('input', () => {
+  actionsEl.classList.toggle('ready', codeBox.value.trim().length > 0);
+  document.getElementById('err').classList.add('hidden');
+  syncHint();
+});
+syncHint();
+refreshHighlight();
+
+document.getElementById('sample').onclick = async () => {
+  if(!sampleLoaded){
+    const r = await fetch('/sample');
+    const d = await r.json();
+    window._sample = d.code;
+    sampleLoaded = true;
+  }
+  document.getElementById('code').value = window._sample;
+  refreshHighlight();
+  syncHint();
+  document.getElementById('err').classList.add('hidden');
+};
+
+// ---- one-click demo scenarios: inject a curated snippet and run the scan ----
+const SCENARIOS = {
+  find: `from openai import OpenAI\nclient = OpenAI()\n\n\ndef answer(question: str) -> str:\n    return client.chat.completions.create(\n        model="gpt-4o",\n        messages=[{"role": "user", "content": question}],\n        max_tokens=100,\n    ).choices[0].message.content\n`,
+  unknown: `from openai import OpenAI\nclient = OpenAI()\n\n\ndef answer(question: str) -> str:\n    return client.chat.completions.create(\n        model="acme-proprietary-model",\n        messages=[{"role": "user", "content": question}],\n        max_tokens=100,\n    ).choices[0].message.content\n`,
+  rejected: `from openai import OpenAI\nclient = OpenAI()\nMODEL_NAME = "gpt-4o"\n\n\ndef answer(question: str) -> str:\n    return client.chat.completions.create(\n        model=MODEL_NAME,\n        messages=[{"role": "user", "content": question}],\n        max_tokens=100,\n    ).choices[0].message.content\n`,
+};
+
+document.querySelectorAll('.scenario').forEach(btn => {
+  btn.onclick = () => {
+    const scenario = btn.dataset.scenario;
+    codeBox.value = SCENARIOS[scenario];
+    refreshHighlight();
+    syncHint();
+    document.getElementById('err').classList.add('hidden');
+    document.getElementById('run').click();
+  };
+});
+
+document.getElementById('run').onclick = async () => {
+  const code = document.getElementById('code').value;
+  if(!code.trim()){ showErr('Paste some code first.'); return; }
+  const btn = document.getElementById('run');
+  btn.disabled = true;
+  document.getElementById('err').classList.add('hidden');
+  document.getElementById('loading').classList.remove('hidden');
+  try{
+    const res = await fetch('/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const data = await res.json();
+    if(!res.ok){ showErr(data.error || 'request failed'); return; }
+    render(data);
+  }catch(e){ showErr('Request failed: '+e); }
+  finally{
+    btn.disabled = false;
+    document.getElementById('loading').classList.add('hidden');
+  }
+};
+
+function showErr(msg){
+  const e = document.getElementById('err');
+  e.textContent = msg;
+  e.classList.remove('hidden');
+}
+
+function render(d){
+  actionsEl.classList.remove('ready');
+  renderSummary(d);
+  renderPricingBasis(d);
+  const downs = renderCards(d);
+  renderReview(d, downs);
+}
+
+function renderSummary(d){
+  const s = d.summary || {};
+  const before = s.before_per_1k||0, after = s.after_per_1k||0;
+  const saving = s.saving_ratio;
+  document.getElementById('saveNum').textContent = saving != null ? (saving*100).toFixed(1)+'%' : 'n/a';
+  const cfText = document.getElementById('cfText');
+  cfText.replaceChildren();
+  const from = document.createElement('b'); from.className = 'from'; from.textContent = '$'+before.toFixed(2);
+  const arrow = document.createTextNode(' → ');
+  const to = document.createElement('b'); to.className = 'to'; to.textContent = '$'+after.toFixed(2);
+  const tail = document.createTextNode(' per 1K calls · price potential from public rate cards · assumes ~3.5 chars/token, output 512 tokens unless set');
+  cfText.append(from, arrow, to, tail);
+  const track = document.getElementById('compareTrack');
+  const max = Math.max(before, after, 0.001);
+  track.replaceChildren();
+  const b1 = document.createElement('div'); b1.className = 'b before'; b1.style.width = (before/max*100)+'%';
+  const b2 = document.createElement('div'); b2.className = 'b after'; b2.style.width = (after/max*100)+'%';
+  track.append(b1, b2);
+  const compareLbl = document.getElementById('compareLbl');
+  compareLbl.replaceChildren();
+  const s1 = document.createElement('span'); s1.textContent = 'before: $'+before.toFixed(2);
+  const s2 = document.createElement('span'); s2.textContent = 'after: $'+after.toFixed(2);
+  compareLbl.append(s1, s2);
+  document.getElementById('summary').classList.add('show');
+}
+
+function _el(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text != null) e.textContent = String(text);
+  return e;
+}
+
+function renderPricingBasis(d){
+  const wrap = document.getElementById('pricingBasis');
+  const pb = d.pricing_basis;
+  if(!pb || !pb.models || pb.models.length === 0){
+    wrap.classList.add('hidden');
+    return;
+  }
+  wrap.classList.remove('hidden');
+  document.getElementById('pbSub').textContent =
+    pb.source + ' · ' + pb.snapshot + ' snapshot · ' + pb.models.length +
+    (pb.models.length === 1 ? ' model' : ' models');
+  const body = document.getElementById('pbBody');
+  body.replaceChildren();
+  const tbl = document.createElement('table');
+  // header
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  hr.appendChild(_el('th', null, 'Model'));
+  hr.appendChild(_el('th', 'r', 'Input'));
+  hr.appendChild(_el('th', 'r', 'Output'));
+  hr.appendChild(_el('th', 'r', 'Status'));
+  thead.appendChild(hr);
+  tbl.appendChild(thead);
+  // rows
+  const tbody = document.createElement('tbody');
+  pb.models.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.appendChild(_el('td', 'model', m.model));
+    if(m.priced && m.input_per_1m != null){
+      tr.appendChild(_el('td', 'price r', '$'+m.input_per_1m.toFixed(2)));
+      tr.appendChild(_el('td', 'price r', '$'+m.output_per_1m.toFixed(2)));
+      tr.appendChild(_el('td', 'r', 'priced'));
+    } else {
+      tr.appendChild(_el('td', 'na r', '—'));
+      tr.appendChild(_el('td', 'na r', '—'));
+      tr.appendChild(_el('td', 'na r', 'not in table'));
+    }
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  body.appendChild(tbl);
+  // footer note
+  const foot = _el('div', 'pb-foot',
+    pb.unit + ' · assumes ~3.5 chars/token, output 512 tokens unless set · not a real bill');
+  body.appendChild(foot);
+}
+
+// pricing basis toggle: expand/collapse the model price table
+document.getElementById('pbToggle').addEventListener('click', () => {
+  const btn = document.getElementById('pbToggle');
+  const body = document.getElementById('pbBody');
+  const open = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!open));
+  body.classList.toggle('open', !open);
+});
+
+function renderCards(d){
+  const dlist = document.getElementById('diffList');
+  const downs = d.candidates.filter(c=>c.decision==='model_downgrade');
+  const kept = d.candidates.filter(c=>c.decision !== 'model_downgrade');
+  document.getElementById('dcCnt').textContent = String(downs.length);
+  dlist.replaceChildren();
+  if(!downs.length && !kept.length){
+    dlist.appendChild(_el('div', 'dim', 'No LLM calls found, or none can be priced from public data.'));
+    return [];
+  }
+  downs.forEach(c=>{
+    // Extract the target model from the suggestion text. The suggestion is
+    // always shaped as: Change model from 'OLD' to 'NEW'  (or
+    // Change model from 'OLD' to 'NEW', ...). Anchoring on `to '...'` is the
+    // only reliable way to get the *target* — the previous `first quoted
+    // token` regex matched the *source* model and made every "from / to"
+    // card visually identical (e.g. line 24 `-gpt-4o +gpt-4o`).
+    let to = '?';
+    const toMatch = c.suggestion.match(/\bto '([^']+)'/);
+    if (toMatch) to = toMatch[1];
+    const pct = c.expected_saving_ratio != null ? ('-'+Math.round(c.expected_saving_ratio*100)+'%') : '';
+    const div = _el('div', 'dc');
+    div.dataset.line = String(c.line);
+    const dch = _el('div', 'dch');
+    dch.appendChild(_el('span', 'ln', ':'+c.line));
+    dch.appendChild(_el('span', 'pill approve', 'APPROVE'));
+    const dpct = _el('span', 'dpct', pct);
+    dpct.style.marginLeft = 'auto';
+    dch.appendChild(dpct);
+    div.appendChild(dch);
+    div.appendChild(_el('span', 'dl', '- '+c.model));
+    div.appendChild(_el('span', 'da', '+ '+to));
+    div.appendChild(_el('div', 'ds', c.suggestion));
+    dlist.appendChild(div);
+  });
+  kept.forEach(c=>{
+    let pillCls, reason, showModel = false;
+    if(c.model && c.source !== 'literal'){
+      pillCls = 'pill human'; reason = 'human review: shared default'; showModel = true;
+    } else if(!c.model){
+      pillCls = 'pill keep'; reason = 'kept as is (no model detected)';
+    } else {
+      pillCls = 'pill keep';
+      reason = (c.cost_per_invocation_usd != null)
+        ? 'kept as is (already the cheapest option)'
+        : 'kept as is (not in price table)';
+      showModel = true;
+    }
+    const div = _el('div', 'dc');
+    div.dataset.line = String(c.line);
+    const dch = _el('div', 'dch');
+    dch.appendChild(_el('span', 'ln', ':'+c.line));
+    dch.appendChild(_el('span', pillCls, ''));
+    // restore pill text by class
+    const pillText = pillCls.endsWith('human') ? 'HUMAN'
+                    : (pillCls.endsWith('keep') && !showModel) ? 'NOT PRICED' : 'KEEP';
+    dch.lastChild.textContent = pillText;
+    div.appendChild(dch);
+    const ds = _el('div', 'ds');
+    if(showModel){
+      const code = document.createElement('code');
+      code.style.fontSize = '11.5px';
+      code.textContent = c.model;
+      ds.appendChild(code);
+      ds.appendChild(document.createTextNode(' '));
+    }
+    ds.appendChild(document.createTextNode(reason));
+    div.appendChild(ds);
+    dlist.appendChild(div);
+  });
+  linkCardsToCode();
+  const siteLines = new Set(d.candidates.map(c=>c.line));
+  document.querySelectorAll('#gutter [data-line]').forEach(el=>{
+    if(siteLines.has(parseInt(el.dataset.line,10))) el.classList.add('mark');
+  });
+  return downs;
+}
+
+function _kv(label, valueNode){
+  const row = document.createElement('div'); row.className = 'kv';
+  const b = document.createElement('b'); b.textContent = label;
+  row.appendChild(b);
+  if(valueNode instanceof Node) row.appendChild(valueNode);
+  else row.appendChild(document.createTextNode(String(valueNode)));
+  return row;
+}
+
+function renderReview(d, downs){
+  const rb = document.getElementById('reviewBody');
+  const s = d.summary || {};
+  const saving = s.saving_ratio;
+  const priced = d.priced || 0;
+  const sites = d.call_sites || 0;
+  const unknown = d.unknown_pricing || 0;
+  const n = downs.length;
+  // This card reflects only what this scan actually produced.
+  // Static scan does not create a branch, run tests, or open a PR.
+  const caveats = [];
+  if(unknown > 0) caveats.push(unknown+' unpriced call'+(unknown===1?'':'s')+' left untouched');
+  if(n === 0 && sites > 0) caveats.push('no provable downgrade on priced sites');
+  let cautionLine;
+  if(sites === 0) cautionLine = 'no LLM calls detected in this snippet';
+  else if(caveats.length) cautionLine = caveats.join('; ');
+  else cautionLine = 'all priced calls have a provable downgrade';
+
+  rb.replaceChildren();
+  rb.appendChild(_kv('Status', 'completed (read-only)'));
+  rb.appendChild(_kv('Calls found', sites));
+  rb.appendChild(_kv('Priced', priced));
+  rb.appendChild(_kv('Unpriced', unknown));
+  const savingLine = document.createDocumentFragment();
+  const sNum = document.createTextNode((saving!=null?(saving*100).toFixed(1)+'%':'n/a')+' ');
+  const sNote = document.createElement('span');
+  sNote.style.color = 'var(--muted)';
+  sNote.style.fontWeight = '500';
+  sNote.textContent = 'on priced sites';
+  savingLine.append(sNum, sNote);
+  rb.appendChild(_kv('Estimated saving', savingLine));
+  rb.appendChild(_kv('Downgrades', n));
+  rb.appendChild(_kv('Caveat', cautionLine));
+  const sign = document.createElement('div');
+  sign.className = 'sign';
+  sign.textContent = 'Run the local agentic loop to produce an actual PR.';
+  rb.appendChild(sign);
+}
+
+// click a sidebar card -> jump the editor to that line, select it, pop it
+const LINE_H = 13.5 * 1.7; // px per line
+function linkCardsToCode(){
+  document.querySelectorAll('.dc[data-line]').forEach(card => {
+    card.onclick = (e) => {
+      if(e.target.classList.contains('pill')) return; // badge click opens the legend
+      const n = parseInt(card.dataset.line, 10);
+      // mark this card as the active one
+      document.querySelectorAll('.dc.active').forEach(el => el.classList.remove('active'));
+      card.classList.add('active');
+      // highlight the target row in the code view (falls back to the gutter
+      // row when the line has no literal model= and thus no yellow block)
+      hlPre.querySelectorAll('.hl-line.active').forEach(el => el.classList.remove('active'));
+      const row = hlPre.querySelector('.hl-line[data-line="'+n+'"]');
+      const anchor = row || gutter.querySelector('[data-line="'+n+'"]');
+      if(row) row.classList.add('active');
+      // scroll the shared editor container so the row is centered-ish
+      const editorScroll = document.getElementById('editorScroll');
+      codeBox.focus();
+      const target = Math.max(0, (n - 1) * LINE_H - 80);
+      editorScroll.scrollTop = target;
+      // if the container cannot scroll (content fits), move the page instead
+      if(editorScroll.scrollTop !== target && anchor){
+        anchor.scrollIntoView({block:'center'});
+      }
+      const src = codeBox.value.split('\n');
+      let start = 0;
+      for(let i=0;i<n-1;i++) start += src[i].length + 1;
+      codeBox.setSelectionRange(start, start + (src[n-1] || '').length);
+    };
+  });
+}
+
+// badge legend modal: opens on the ? button or on any pill click
+const statusModal = document.getElementById('statusModal');
+function openLegend(){
+  hidePop();
+  statusModal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLegend(){
+  statusModal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('legendBtn').addEventListener('click', openLegend);
+document.getElementById('modalClose').addEventListener('click', closeLegend);
+statusModal.addEventListener('click', e => {
+  if(e.target === statusModal) closeLegend();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeLegend();
+});
+
+// pill popover: hover a badge for a quick one-liner explanation
+const popover = document.createElement('div');
+popover.className = 'popover';
+document.body.appendChild(popover);
+const POP_TEXT = {
+  'APPROVE':    '<b>Switch it.</b> The model is known, priced, and a cheaper one exists.',
+  'KEEP':       '<b>Leave it.</b> Already the cheapest, or not in the price table.',
+  'NOT PRICED': '<b>No price to compute.</b> Model comes from a variable, so it stays untouched.',
+  'HUMAN':      '<b>Your call.</b> Shared constant used in many places, bigger decision for a human.',
+};
+let popTimer = null;
+function showPop(pillEl){
+  const c = POP_TEXT[pillEl.textContent.trim()];
+  if(!c) return;
+  popover.innerHTML = c;
+  popover.classList.add('show');
+  popover.style.visibility = 'hidden';
+  popover.style.top = '0px';
+  popover.style.left = '0px';
+  // measure after render
+  const rect = pillEl.getBoundingClientRect();
+  const pw = popover.offsetWidth;
+  const ph = popover.offsetHeight;
+  const margin = 8;
+  // prefer below the pill; flip above only if there is not enough room
+  let top = rect.bottom + 10;
+  if(top + ph + margin > window.innerHeight){
+    top = rect.top - ph - 10;
+  }
+  // clamp inside viewport
+  top = Math.max(margin, Math.min(window.innerHeight - ph - margin, top));
+  const left = Math.max(margin, Math.min(window.innerWidth - pw - margin, rect.left + rect.width / 2 - pw / 2));
+  popover.style.top = top + 'px';
+  popover.style.left = left + 'px';
+  popover.style.visibility = '';
+}
+function hidePop(){
+  popover.classList.remove('show');
+}
+document.getElementById('diffList').addEventListener('mouseover', e => {
+  if(e.target.classList.contains('pill')){
+    clearTimeout(popTimer);
+    popTimer = setTimeout(() => showPop(e.target), 110);
+  }
+});
+document.getElementById('diffList').addEventListener('mouseout', e => {
+  if(e.target.classList.contains('pill')){
+    clearTimeout(popTimer);
+    popTimer = setTimeout(hidePop, 90);
+  }
+});
+document.getElementById('diffList').addEventListener('click', e => {
+  if(e.target.classList.contains('pill')) openLegend();
+});
+</script>
+</body>
+</html>

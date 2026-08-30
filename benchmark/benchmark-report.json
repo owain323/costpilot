@@ -1,0 +1,357 @@
+{
+  "repos": [
+    {
+      "name": "vanna",
+      "py_files": 301,
+      "sites": 20,
+      "seconds": 2.304,
+      "sites_per_sec": 8.68,
+      "by_framework": {
+        "anthropic": 2,
+        "openai": 17,
+        "openai_responses": 1
+      },
+      "unknown_model": 19,
+      "unknown_rate": 0.95,
+      "pattern_recall": {
+        "openai_sdk": {
+          "grep_files": 7,
+          "scanner_files": 7,
+          "recall": 1.0,
+          "missed": []
+        },
+        "anthropic_sdk": {
+          "grep_files": 2,
+          "scanner_files": 2,
+          "recall": 1.0,
+          "missed": []
+        },
+        "langchain_ctor": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "langchain_invoke": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        }
+      },
+      "all_sites": [
+        {
+          "file": "src/vanna/integrations/anthropic/llm.py",
+          "line": 69,
+          "fw": "anthropic",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/integrations/azureopenai/llm.py",
+          "line": 125,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/integrations/azureopenai/llm.py",
+          "line": 164,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/integrations/openai/llm.py",
+          "line": 73,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/integrations/openai/llm.py",
+          "line": 111,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/integrations/openai/responses.py",
+          "line": 31,
+          "fw": "openai_responses",
+          "model": null,
+          "conf": 0.85
+        },
+        {
+          "file": "src/vanna/legacy/ZhipuAI/ZhipuAI_Chat.py",
+          "line": 224,
+          "fw": "openai",
+          "model": "glm-4",
+          "conf": 0.96
+        },
+        {
+          "file": "src/vanna/legacy/anthropic/anthropic_chat.py",
+          "line": 72,
+          "fw": "anthropic",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/cohere/cohere_chat.py",
+          "line": 77,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/deepseek/deepseek_chat.py",
+          "line": 54,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/openai/openai_chat.py",
+          "line": 69,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/openai/openai_chat.py",
+          "line": 78,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/openai/openai_chat.py",
+          "line": 88,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/openai/openai_chat.py",
+          "line": 98,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/openai/openai_chat.py",
+          "line": 111,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/qianwen/QianwenAI_chat.py",
+          "line": 77,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/qianwen/QianwenAI_chat.py",
+          "line": 86,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/qianwen/QianwenAI_chat.py",
+          "line": 96,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/qianwen/QianwenAI_chat.py",
+          "line": 106,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "src/vanna/legacy/qianwen/QianwenAI_chat.py",
+          "line": 119,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        }
+      ]
+    },
+    {
+      "name": "pandas-ai",
+      "py_files": 191,
+      "sites": 8,
+      "seconds": 1.205,
+      "sites_per_sec": 6.64,
+      "by_framework": {
+        "openai": 8
+      },
+      "unknown_model": 0,
+      "unknown_rate": 0.0,
+      "pattern_recall": {
+        "openai_sdk": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "anthropic_sdk": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "langchain_ctor": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "langchain_invoke": {
+          "grep_files": 1,
+          "scanner_files": 2,
+          "recall": 0.0,
+          "missed": [
+            "tests/unit_tests/test_cli.py"
+          ]
+        }
+      },
+      "all_sites": [
+        {
+          "file": "tests/unit_tests/agent/.ipynb_checkpoints/test_agent_llm_judge-checkpoint.py",
+          "line": 111,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/.ipynb_checkpoints/test_agent_llm_judge-checkpoint.py",
+          "line": 136,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/.ipynb_checkpoints/test_agent_llm_judge-checkpoint.py",
+          "line": 161,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/.ipynb_checkpoints/test_agent_llm_judge-checkpoint.py",
+          "line": 190,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/test_agent_llm_judge.py",
+          "line": 111,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/test_agent_llm_judge.py",
+          "line": 136,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/test_agent_llm_judge.py",
+          "line": 161,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        },
+        {
+          "file": "tests/unit_tests/agent/test_agent_llm_judge.py",
+          "line": 190,
+          "fw": "openai",
+          "model": "gpt-4.1-mini",
+          "conf": 0.94
+        }
+      ]
+    },
+    {
+      "name": "strands-agents",
+      "py_files": 262,
+      "sites": 4,
+      "seconds": 0.857,
+      "sites_per_sec": 4.67,
+      "by_framework": {
+        "openai": 3,
+        "openai_responses": 1
+      },
+      "unknown_model": 4,
+      "unknown_rate": 1.0,
+      "pattern_recall": {
+        "openai_sdk": {
+          "grep_files": 2,
+          "scanner_files": 2,
+          "recall": 1.0,
+          "missed": []
+        },
+        "anthropic_sdk": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "langchain_ctor": {
+          "grep_files": 0,
+          "scanner_files": 0,
+          "recall": null,
+          "missed": []
+        },
+        "langchain_invoke": {
+          "grep_files": 3,
+          "scanner_files": 3,
+          "recall": 0.0,
+          "missed": [
+            "agent/agent.py",
+            "event_loop/event_loop.py",
+            "tools/executors/_executor.py"
+          ]
+        }
+      },
+      "all_sites": [
+        {
+          "file": "models/llamaapi.py",
+          "line": 378,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "models/openai.py",
+          "line": 710,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.86
+        },
+        {
+          "file": "models/openai.py",
+          "line": 842,
+          "fw": "openai",
+          "model": null,
+          "conf": 0.84
+        },
+        {
+          "file": "models/openai_responses.py",
+          "line": 323,
+          "fw": "openai_responses",
+          "model": null,
+          "conf": 0.85
+        }
+      ]
+    }
+  ]
+}
