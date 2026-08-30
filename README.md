@@ -63,9 +63,10 @@ On Windows, activate the venv with `.venv\Scripts\activate` instead.
 
 ## See it work
 
-- Real change request produced by CostPilot: [owain323/costpilot-demo pull #1](https://github.com/owain323/costpilot-demo/pull/1). Three model swaps on branch `costpilot/optimize`, about 80% cheaper per 1K calls, opened by the agent and awaiting a human decision.
+- Real change request produced by CostPilot: [owain323/costpilot-demo pull #1](https://github.com/owain323/costpilot-demo/pull/1). Three model swaps on branch `costpilot/optimize`, about 80% cheaper per 1K calls, opened by the agent. The human review is on the record on that PR: the price math and the tests check out, and the merge is deliberately on hold pending output-quality spot checks. That hold is the design working.
 - Demo target repo: [owain323/costpilot-demo](https://github.com/owain323/costpilot-demo)
 - Live scan-only demo: [costpilot.owain32380.cn](https://costpilot.owain32380.cn) — paste code, see call sites, prices, and conservative downgrades. The **Pricing basis** panel (expandable below the summary) shows the public rate-card rows used for *this* scan: every model involved, its input/output price per 1M tokens, and an explicit "not in table" row for anything unpriced. No hidden assumptions.
+- Two artifacts, two runs, shown unedited. The pull request came from the deterministic pipeline run (three swaps, 80%). The recorded agentic run then applied the stricter four-criteria loop and approved one downgrade (94% modeled saving) while handing a constant-derived model to a human. Different gates, same rule: no proof, no change.
 - Local PR artifact sample: `benchmark/artifacts/costpilot__optimize.md`
 - Reproduce the benchmark: `python benchmark/benchmark.py` (auto-fetches pinned repos, SHA-locked, results match `benchmark-report.json`)
 
