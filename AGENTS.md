@@ -16,7 +16,7 @@ uvicorn demo.app:app --port 8000                    # live scan-only demo (from 
 Python 3.13, AST-based static analysis, Strands Agents SDK for the decision loop (Ollama default, Bedrock optional). Demo is a single-file HTML frontend (no build step) served by FastAPI.
 
 ## Layout and conventions
-- `costpilot/`: scanner, pricing, optimizer, validator, git_provider (the pipeline)
+- `costpilot/`: scanner, pricing, optimizer, validator, git_provider, github_provider (the pipeline)
 - `demo/`: live demo, `demo/app.py` (FastAPI, /scan) + `demo/static/index.html` (all UI in one file)
 - `benchmark/`: real-repo benchmark, SHA-locked, self-healing fetch
 - `docs/`: architecture + governance docs
