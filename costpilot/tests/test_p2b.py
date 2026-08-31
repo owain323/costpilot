@@ -52,6 +52,22 @@ def _make_repo(src: Path) -> Path:
     return _init_repo({src.name: src.read_text(encoding="utf-8")})
 
 
+def _git_can_stage_symlink(repo: Path, link: Path) -> bool:
+    """True when git on this platform can see and stage a symlink.
+
+    Some setups (Windows with developer mode) allow os.symlink() while
+    git itself cannot stage the link, so the symlink attack vector does
+    not exist there and the rejection tests cannot run meaningfully.
+    """
+    probe = subprocess.run(
+        ["git", "-C", str(repo), "status", "--porcelain", "--", str(link)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    return probe.returncode == 0 and bool(probe.stdout.strip())
+
+
 class TestPolicyGate(unittest.TestCase):
     """The agent/system boundary: allowlist enforcement."""
 
@@ -167,6 +183,8 @@ class TestHonestyFixes(unittest.TestCase):
                 os.symlink(outside, link)
             except OSError:
                 self.skipTest("OS does not allow unprivileged symlinks")
+            if not _git_can_stage_symlink(repo, link):
+                self.skipTest("git on this platform cannot stage symlinks")
             with self.assertRaises(PermissionError):
                 provider.commit(repo, "costpilot: x", ["evil.py"])
             self.assertEqual(outside.read_text(encoding="utf-8"), 'OUTSIDE = "original"\n')
@@ -184,6 +202,8 @@ class TestHonestyFixes(unittest.TestCase):
                 os.symlink(outside, link)
             except OSError:
                 self.skipTest("OS does not allow unprivileged symlinks")
+            if not _git_can_stage_symlink(repo, link):
+                self.skipTest("git on this platform cannot stage symlinks")
             with self.assertRaises(PermissionError):
                 provider.apply_changes(
                     repo,
