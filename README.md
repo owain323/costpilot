@@ -29,6 +29,27 @@ FIND → PROVE → PATCH → VALIDATE → PR
 
 ![Architecture](docs/architecture.svg)
 
+## The agent loop, recorded
+
+The decision step is a real Strands agent running a local model (`qwen2.5:7b`).
+The full terminal recording is in the demo video at 1:30. Two frames from that
+run:
+
+![The agent reviews five candidates built from structured facts, not source text](docs/agentic-run-candidates.png)
+
+![Twelve tool calls later: one approve, four keeps, commit 9e69cb5b, tests green](docs/agentic-run-decisions.png)
+
+The agent screened five candidates and approved exactly one: a `gpt-4o` call
+with a literal model string, 94% lower in modeled cost per 1K calls. The
+constant-derived site and the unpriced site stayed untouched. The run took 349
+seconds of real wall-clock time; that number is left unedited in the recording.
+
+A note on the percentages, because two runs produced two numbers: 94% and 73%
+are per-model price differences (gpt-4o to gpt-4o-mini, claude-sonnet-4-5 to
+claude-haiku-3-5). The pull request reports 80.3% because it merges three
+swaps across both models, and the blended saving depends on each call's token
+mix. Both numbers come from the same pricing table.
+
 ## Quickstart
 
 The static path (`pipeline.py`: scan, price, recommend) needs no model, no API
@@ -83,7 +104,21 @@ On Windows, activate the venv with `.venv\Scripts\activate` instead.
 
 Most real-world LLM calls (~95%) use models we can't price from public data. CostPilot says "unknown" and keeps the code as is. No guesswork, no made-up numbers. Every saving is labeled as price potential from public rate cards, not a realized bill. The web demo shows its working: the Pricing basis panel lists the exact unit prices (USD per 1M tokens, 2026-08 snapshot from vendor public pricing pages) and the token assumptions (~3.5 chars/token, output 512 tokens unless set), so anyone can reproduce the math by hand.
 
-The pricing table covers nine models today: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, claude-sonnet-4-5, claude-opus-4, claude-haiku-3-5, claude-3-5-haiku. That list is small on purpose: adding a model means adding one verified row with a vendor pricing link, and nothing else changes.
+The pricing table covers eleven models today: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, o3-mini, o4-mini, claude-sonnet-4-5, claude-opus-4, claude-haiku-3-5, claude-3-5-haiku. That list is small on purpose: adding a model means adding one verified row with a vendor pricing link, and nothing else changes.
+
+## Where the numbers come from
+
+Every number quoted in the README, the blog post, and the video traces to one
+of these artifacts. The table is the single index; the artifacts are the only
+source.
+
+| Number | What it is | Source |
+|---|---|---|
+| 94% | Modeled per-1K-call saving, gpt-4o to gpt-4o-mini, recorded agentic run | `benchmark/artifacts/costpilot__optimize.md` |
+| 73% | Modeled per-1K-call saving, claude-sonnet-4-5 to claude-haiku-3-5 | Same pricing table, blended into the 80.3% below |
+| 80.3% | Blended saving across the three swaps in the pull request run | [costpilot-demo PR #1](https://github.com/owain323/costpilot-demo/pull/1) |
+| 95% | Share of vanna call sites with no public price (19 of 20 sites) | `benchmark/benchmark-report.json` |
+| 73 | Unit tests, no network, no API key (66 in the submitted recording; 7 added with `github_provider`. 71 run, 2 skip on symlink-hostile platforms) | `run_checks.py` output, CI workflow |
 
 ## Downgrade safety criteria
 
