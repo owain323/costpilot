@@ -97,7 +97,7 @@ On Windows, activate the venv with `.venv\Scripts\activate` instead.
 - The agent never touches a raw shell. Git subcommands and flags are allowlisted, branch names must start with `costpilot/`, commit messages with `costpilot:`.
 - A change needs two approvals: the agent's and the rule allowlist. In our live run, the LLM approved a constant-derived model swap; the rule layer blocked it.
 - If validation fails, the working tree is rolled back. No commit, no change request, nothing left dirty.
-- The scan endpoint is hardened against hostile input: empty input, JavaScript, malformed Python, oversized files, and script tags inside model names are all handled with errors, not crashes. The tests are in `costpilot/tests/test_demo_endpoint.py` and `costpilot/tests/test_xss_contract.py`.
+- The scan endpoint is hardened against hostile input: empty input reports an honest zero, JavaScript and malformed Python get clear errors, oversized pastes hit a 200,000 character cap, and script tags inside model names travel through as inert data. The tests are in `costpilot/tests/test_demo_endpoint.py` and `costpilot/tests/test_xss_contract.py`.
 - The agent sees structured facts (file, line, model, confidence, cost), not your source code. The schema is constrained, and every write still passes the policy gate.
 
 ## On honesty
@@ -108,7 +108,7 @@ The pricing table covers eleven models today: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-
 
 ## Where the numbers come from
 
-Every number quoted in the README, the blog post, and the video traces to one
+Every number quoted in the README, the blog posts, and the video traces to one
 of these artifacts. The table is the single index; the artifacts are the only
 source.
 
@@ -118,7 +118,13 @@ source.
 | 73% | Modeled per-1K-call saving, claude-sonnet-4-5 to claude-haiku-3-5 | Same pricing table, blended into the 80.3% below |
 | 80.3% | Blended saving across the three swaps in the pull request run | [costpilot-demo PR #1](https://github.com/owain323/costpilot-demo/pull/1) |
 | 95% | Share of vanna call sites with no public price (19 of 20 sites) | `benchmark/benchmark-report.json` |
+| 754 | Files covered by the static benchmark | `benchmark/benchmark-report.json` |
+| 349s | Wall-clock time of the recorded agentic loop, run on the local model | Video 1:30-2:45, frame preserved as `docs/agentic-run-decisions.png` |
+| 12 | Tool calls in the recorded agentic run (list, 5 get, 5 decide, finish) | Same frame, `docs/agentic-run-decisions.png` |
+| 4m29s | Full judge reproduction: fresh venv, install, all gates, demo smoke test | Judge reproduction log; rerunnable via fresh venv + `run_checks.py` |
+| 200,000 | Character cap on pasted demo source, answered with HTTP 413 | `demo/app.py` (`MAX_INPUT_CHARS`) |
 | 73 | Unit tests, no network, no API key (66 in the submitted recording; 7 added with `github_provider`. 71 run, 2 skip on symlink-hostile platforms) | `run_checks.py` output, CI workflow |
+| 19+16+13+10+8+7 | Test distribution: scanner, git gate/rollback, pricing/policy, agent loop, demo endpoint, GitHub publish path | `grep -c "def test_" costpilot/tests/test_*.py` |
 
 ## Downgrade safety criteria
 
