@@ -1,100 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1350" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 660" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M0,0 L10,5 L0,10 z" fill="#4a5568"/>
     </marker>
-    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38a169"/>
     </marker>
-    <marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    <marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e53e3e"/>
     </marker>
   </defs>
 
-  <rect x="0" y="0" width="2400" height="1350" fill="#ffffff"/>
+  <rect width="920" height="660" fill="#ffffff"/>
+  <text x="460" y="36" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a202c">CostPilot</text>
+  <text x="460" y="58" text-anchor="middle" font-size="13" fill="#4a5568">The agent only acts on what it can prove</text>
 
-  <text x="100" y="95" font-size="50" font-weight="bold" fill="#1a202c">CostPilot</text>
-  <text x="100" y="150" font-size="32" fill="#4a5568">The agent only acts on what it can prove</text>
+  <!-- Row 1: background pipeline -->
+  <rect x="40" y="90" width="820" height="140" rx="10" fill="#f7fafc" stroke="#cbd5e0"/>
+  <text x="450" y="112" text-anchor="middle" font-size="13" font-weight="bold" fill="#2d3748">Background pipeline (deterministic)</text>
 
-  <rect x="120" y="190" width="2160" height="200" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="1200" y="245" font-size="32" font-weight="bold" fill="#334155" text-anchor="middle">The CostPilot pipeline (deterministic)</text>
+  <g>
+    <rect x="70" y="132" width="150" height="64" rx="8" fill="#ebf8ff" stroke="#4299e1"/>
+    <text x="145" y="158" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b6cb0">FIND</text>
+    <text x="145" y="178" text-anchor="middle" font-size="10" fill="#4a5568">scanner.py</text>
+  </g>
+  <line x1="220" y1="164" x2="248" y2="164" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <rect x="200" y="270" width="440" height="110" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="420" y="315" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">FIND</text>
-  <text x="420" y="352" font-size="26" fill="#4a5568" text-anchor="middle">scanner.py</text>
+  <g>
+    <rect x="250" y="132" width="150" height="64" rx="8" fill="#ebf8ff" stroke="#4299e1"/>
+    <text x="325" y="158" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b6cb0">PROVE</text>
+    <text x="325" y="178" text-anchor="middle" font-size="10" fill="#4a5568">pricing.py</text>
+  </g>
+  <line x1="400" y1="164" x2="428" y2="164" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <rect x="720" y="270" width="440" height="110" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="940" y="315" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">PROVE</text>
-  <text x="940" y="352" font-size="26" fill="#4a5568" text-anchor="middle">pricing.py</text>
+  <g>
+    <rect x="430" y="132" width="150" height="64" rx="8" fill="#ebf8ff" stroke="#4299e1"/>
+    <text x="505" y="158" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b6cb0">PATCH</text>
+    <text x="505" y="178" text-anchor="middle" font-size="10" fill="#4a5568">optimizer.py</text>
+  </g>
+  <line x1="580" y1="164" x2="608" y2="164" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <rect x="1240" y="270" width="440" height="110" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="1460" y="315" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">PATCH</text>
-  <text x="1460" y="352" font-size="26" fill="#4a5568" text-anchor="middle">optimizer.py</text>
+  <g>
+    <rect x="610" y="132" width="150" height="64" rx="8" fill="#ebf8ff" stroke="#4299e1"/>
+    <text x="685" y="158" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b6cb0">VALIDATE</text>
+    <text x="685" y="178" text-anchor="middle" font-size="10" fill="#4a5568">validator.py</text>
+  </g>
 
-  <rect x="1760" y="270" width="440" height="110" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="1980" y="315" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">VALIDATE</text>
-  <text x="1980" y="352" font-size="26" fill="#4a5568" text-anchor="middle">validator.py</text>
+  <!-- connector down to agent -->
+  <line x1="685" y1="230" x2="685" y2="252" stroke="#4a5568" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <text x="705" y="246" font-size="10" fill="#718096">structured facts only</text>
 
-  <line x1="648" y1="325" x2="712" y2="325" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-  <line x1="1168" y1="325" x2="1232" y2="325" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-  <line x1="1688" y1="325" x2="1752" y2="325" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
+  <!-- Row 2: Strands agent -->
+  <rect x="340" y="256" width="500" height="92" rx="10" fill="#faf5ff" stroke="#805ad5"/>
+  <text x="590" y="280" text-anchor="middle" font-size="13" font-weight="bold" fill="#6b46c1">Strands Agent (agent_loop.py)</text>
+  <text x="590" y="302" text-anchor="middle" font-size="11" fill="#4a5568">4 bounded tools: list_candidates · get_candidate · decide · finish</text>
+  <text x="590" y="322" text-anchor="middle" font-size="11" fill="#4a5568">decides approve / keep / ask_human · never sees raw source</text>
 
-  <line x1="940" y1="390" x2="940" y2="460" stroke="#4a5568" stroke-width="2.5"/>
-  <line x1="940" y1="460" x2="1200" y2="460" stroke="#4a5568" stroke-width="2.5"/>
-  <line x1="1200" y1="460" x2="1200" y2="512" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-  <text x="925" y="430" font-size="26" fill="#64748b" text-anchor="end">structured facts only</text>
+  <line x1="590" y1="348" x2="590" y2="376" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="610" y="368" font-size="10" fill="#718096">decisions</text>
 
-  <rect x="720" y="520" width="960" height="150" rx="14" fill="#faf5ff" stroke="#a855f7" stroke-width="2.5"/>
-  <text x="1200" y="570" font-size="32" font-weight="bold" fill="#7c3aed" text-anchor="middle">Strands Agent (agent_loop.py)</text>
-  <text x="1200" y="612" font-size="28" fill="#374151" text-anchor="middle">4 bounded tools: list_candidates &#183; get_candidate &#183; decide &#183; finish</text>
-  <text x="1200" y="654" font-size="28" fill="#374151" text-anchor="middle">decides approve / keep / ask_human &#183; never sees raw source</text>
+  <!-- Row 3: policy gate -->
+  <rect x="230" y="380" width="720" height="92" rx="10" fill="#fffff0" stroke="#d69e2e"/>
+  <text x="590" y="404" text-anchor="middle" font-size="13" font-weight="bold" fill="#975a16">Policy gate (double gate)</text>
+  <text x="590" y="426" text-anchor="middle" font-size="11" fill="#4a5568">agent approves AND rule allowlist accepts</text>
+  <text x="590" y="446" text-anchor="middle" font-size="11" fill="#4a5568">git subcommands and flags allowlisted · branch costpilot/* · commit costpilot:</text>
 
-  <line x1="1200" y1="670" x2="1200" y2="732" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-  <text x="1230" y="698" font-size="26" fill="#64748b">decisions</text>
+  <!-- gate outcome arrows -->
+  <line x1="400" y1="472" x2="260" y2="518" stroke="#38a169" stroke-width="1.5" marker-end="url(#arrg)"/>
+  <line x1="780" y1="472" x2="660" y2="518" stroke="#e53e3e" stroke-width="1.5" marker-end="url(#arrr)"/>
+  <text x="170" y="498" font-size="10" fill="#2f855a">pass</text>
+  <text x="730" y="500" font-size="10" fill="#c53030">block</text>
 
-  <rect x="650" y="740" width="1100" height="160" rx="14" fill="#fefce8" stroke="#d97706" stroke-width="2.5"/>
-  <text x="1200" y="788" font-size="32" font-weight="bold" fill="#b45309" text-anchor="middle">Policy gate (double gate)</text>
-  <text x="1200" y="830" font-size="28" fill="#374151" text-anchor="middle">agent approves AND rule allowlist accepts</text>
-  <text x="1200" y="874" font-size="28" fill="#374151" text-anchor="middle">git subcommands and flags allowlisted &#183; branch costpilot/* &#183; commit costpilot:</text>
+  <!-- Row 4: outcomes -->
+  <g>
+    <rect x="70" y="520" width="330" height="70" rx="10" fill="#f0fff4" stroke="#38a169"/>
+    <text x="235" y="548" text-anchor="middle" font-size="13" font-weight="bold" fill="#2f855a">Pull request</text>
+    <text x="235" y="570" text-anchor="middle" font-size="10" fill="#4a5568">branch costpilot/optimize · before/after cost attached</text>
+  </g>
 
-  <line x1="650" y1="820" x2="460" y2="820" stroke="#dc2626" stroke-width="2.5"/>
-  <line x1="460" y1="820" x2="460" y2="982" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrr)"/>
-  <text x="478" y="910" font-size="28" font-weight="bold" fill="#dc2626">block</text>
+  <g>
+    <rect x="470" y="520" width="330" height="70" rx="10" fill="#fff5f5" stroke="#e53e3e"/>
+    <text x="635" y="548" text-anchor="middle" font-size="13" font-weight="bold" fill="#c53030">Kept / handed to human</text>
+    <text x="635" y="570" text-anchor="middle" font-size="10" fill="#4a5568">unknown pricing, shared definitions, agent said keep</text>
+  </g>
 
-  <line x1="1600" y1="900" x2="1600" y2="982" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrg)"/>
-  <text x="1630" y="945" font-size="28" font-weight="bold" fill="#16a34a">pass</text>
-
-  <rect x="180" y="990" width="560" height="200" rx="14" fill="#fef2f2" stroke="#ef4444" stroke-width="2.5"/>
-  <text x="460" y="1050" font-size="30" font-weight="bold" fill="#b91c1c" text-anchor="middle">Kept / handed to human</text>
-  <text x="460" y="1095" font-size="28" fill="#374151" text-anchor="middle">unknown pricing &#183; shared definitions</text>
-  <text x="460" y="1140" font-size="28" fill="#374151" text-anchor="middle">agent said keep</text>
-
-  <rect x="880" y="990" width="1440" height="200" rx="14" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="1600" y="1038" font-size="32" font-weight="bold" fill="#334155" text-anchor="middle">Stage 2 &#183; deterministic execution</text>
-
-  <rect x="920" y="1050" width="400" height="125" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="1120" y="1092" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">PATCH</text>
-  <text x="1120" y="1130" font-size="26" fill="#4a5568" text-anchor="middle">optimizer.py</text>
-
-  <rect x="1360" y="1050" width="400" height="125" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
-  <text x="1560" y="1092" font-size="30" font-weight="bold" fill="#1d4ed8" text-anchor="middle">VALIDATE</text>
-  <text x="1560" y="1130" font-size="26" fill="#4a5568" text-anchor="middle">validator.py</text>
-
-  <rect x="1800" y="1050" width="480" height="150" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="2.5"/>
-  <text x="2040" y="1092" font-size="30" font-weight="bold" fill="#15803d" text-anchor="middle">Pull request</text>
-  <text x="2040" y="1134" font-size="26" fill="#374151" text-anchor="middle">branch costpilot/optimize</text>
-  <text x="2040" y="1172" font-size="26" fill="#374151" text-anchor="middle">before/after cost attached</text>
-
-  <line x1="1325" y1="1112" x2="1355" y2="1112" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-  <line x1="1765" y1="1112" x2="1795" y2="1112" stroke="#4a5568" stroke-width="2.5" marker-end="url(#arr)"/>
-
-  <line x1="460" y1="1190" x2="460" y2="1280" stroke="#64748b" stroke-width="2.5"/>
-  <line x1="460" y1="1280" x2="692" y2="1280" stroke="#64748b" stroke-width="2.5" marker-end="url(#arr)"/>
-
-  <line x1="2040" y1="1200" x2="2040" y2="1280" stroke="#64748b" stroke-width="2.5"/>
-  <line x1="2040" y1="1280" x2="1708" y2="1280" stroke="#64748b" stroke-width="2.5" marker-end="url(#arr)"/>
-
-  <rect x="700" y="1230" width="1000" height="100" rx="50" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2.5"/>
-  <text x="1200" y="1272" font-size="32" font-weight="bold" fill="#334155" text-anchor="middle">Human review</text>
-  <text x="1200" y="1312" font-size="28" fill="#4a5568" text-anchor="middle">merge or close the pull request &#183; kept calls ship no change</text>
+  <!-- human decide -->
+  <rect x="300" y="606" width="300" height="34" rx="17" fill="#edf2f7" stroke="#a0aec0"/>
+  <text x="450" y="628" text-anchor="middle" font-size="12" fill="#2d3748">Human decides: merge or close</text>
+  <line x1="235" y1="590" x2="380" y2="606" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="635" y1="590" x2="520" y2="606" stroke="#4a5568" stroke-width="1.5" marker-end="url(#arr)"/>
 </svg>
