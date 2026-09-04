@@ -32,7 +32,7 @@ FIND → PROVE → PATCH → VALIDATE → PR
 ## The agent loop, recorded
 
 The decision step is a real Strands agent running a local model (`qwen2.5:7b`).
-The full terminal recording is in the demo video at 1:30. Two frames from that
+The terminal recording (time-lapsed) is in the demo video at 1:30. Two frames from that
 run:
 
 ![The agent reviews five candidates built from structured facts, not source text](docs/agentic-run-candidates.png)
@@ -95,14 +95,14 @@ On Windows, activate the venv with `.venv\Scripts\activate` instead.
 
 - It rewrites only literal model strings (`model="gpt-4o"` to `"gpt-4o-mini"`). Models that come from constants, config, or env vars are left to a human; changing a shared definition affects every caller.
 - The agent never touches a raw shell. Git subcommands and flags are allowlisted, branch names must start with `costpilot/`, commit messages with `costpilot:`.
-- A change needs two approvals: the agent's and the rule allowlist. In our live run, the LLM approved a constant-derived model swap; the rule layer blocked it.
+- A change needs two approvals: the agent's and the rule allowlist. A test with an approve-all decision maker confirms the rule layer blocks constant-derived model swaps regardless of the agent's vote (`test_constant_derived_model_blocked_by_rule_layer`).
 - If validation fails, the working tree is rolled back. No commit, no change request, nothing left dirty.
 - The scan endpoint is hardened against hostile input: empty input reports an honest zero, JavaScript and malformed Python get clear errors, oversized pastes hit a 200,000 character cap, and script tags inside model names travel through as inert data. The tests are in `costpilot/tests/test_demo_endpoint.py` and `costpilot/tests/test_xss_contract.py`.
 - The agent sees structured facts (file, line, model, confidence, cost), not your source code. The schema is constrained, and every write still passes the policy gate.
 
 ## On honesty
 
-Most real-world LLM calls (~95%) use models we can't price from public data. CostPilot says "unknown" and keeps the code as is. No guesswork, no made-up numbers. Every saving is labeled as price potential from public rate cards, not a realized bill. The web demo shows its working: the Pricing basis panel lists the exact unit prices (USD per 1M tokens, 2026-08 snapshot from vendor public pricing pages) and the token assumptions (~3.5 chars/token, output 512 tokens unless set), so anyone can reproduce the math by hand.
+In our benchmark, 19 of 20 call sites in the vanna repository reference models we can't price from public data. CostPilot says "unknown" and keeps the code as is. No guesswork, no made-up numbers. Every saving is labeled as price potential from public rate cards, not a realized bill. The web demo shows its working: the Pricing basis panel lists the exact unit prices (USD per 1M tokens, 2026-08 snapshot from vendor public pricing pages) and the token assumptions (~3.5 chars/token, output 512 tokens unless set), so anyone can reproduce the math by hand.
 
 The pricing table covers eleven models today: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, o3-mini, o4-mini, claude-sonnet-4-5, claude-opus-4, claude-haiku-3-5, claude-3-5-haiku. That list is small on purpose: adding a model means adding one verified row with a vendor pricing link, and nothing else changes.
 
@@ -119,11 +119,12 @@ source.
 | 80.3% | Blended saving across the three swaps in the pull request run | [costpilot-demo PR #1](https://github.com/owain323/costpilot-demo/pull/1) |
 | 95% | Share of vanna call sites with no public price (19 of 20 sites) | `benchmark/benchmark-report.json` |
 | 754 | Files covered by the static benchmark | `benchmark/benchmark-report.json` |
-| 349s | Wall-clock time of the recorded agentic loop, run on the local model | Video 1:30-2:45, frame preserved as `docs/agentic-run-decisions.png` |
+| 349s | Wall-clock time of the recorded agentic loop, run on the local model | Video 1:30-2:45, frame preserved as `docs/agentic-run-decisions.png`; agent commit [`9e69cb5b`](https://github.com/owain323/costpilot-demo/commit/9e69cb5b4b20d32b7337e987b95bc91282101199), branch `recorded-run` in the demo repo |
 | 12 | Tool calls in the recorded agentic run (list, 5 get, 5 decide, finish) | Same frame, `docs/agentic-run-decisions.png` |
 | 4m29s | Full judge reproduction: fresh venv, install, all gates, demo smoke test | Judge reproduction log; rerunnable via fresh venv + `run_checks.py` |
 | 200,000 | Character cap on pasted demo source, answered with HTTP 413 | `demo/app.py` (`MAX_INPUT_CHARS`) |
 | 73 | Unit tests, no network, no API key (66 in the submitted recording; 7 added with `github_provider`. 71 run, 2 skip on symlink-hostile platforms) | `run_checks.py` output, CI workflow |
+| $120-$1,194 | Illustrative bill chart in the video intro, not a measured bill | Video 0:20 (scene-setting animation) |
 | 19+16+13+10+8+7 | Test distribution: scanner, git gate/rollback, pricing/policy, agent loop, demo endpoint, GitHub publish path | `grep -c "def test_" costpilot/tests/test_*.py` |
 
 ## Downgrade safety criteria

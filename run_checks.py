@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cross-platform quality gates (Windows/macOS/Linux).
 
-Equivalent to run_checks.sh but runs anywhere Python does — no bash, no
+Equivalent to run_checks.sh but runs anywhere Python does -- no bash, no
 Git Bash, no WSL required. Judge opens the zip, runs this file, sees the
 same four gates.
 
@@ -26,7 +26,7 @@ def run(cmd: list[str], *, cwd: Path | None = None) -> tuple[int, str]:
 
 def gate(name: str, ok: bool, detail: str = "") -> bool:
     mark = "✅" if ok else "❌"
-    print(f"[{mark}] {name}" + (f" — {detail}" if detail else ""))
+    print(f"[{mark}] {name}" + (f" -- {detail}" if detail else ""))
     return ok
 
 
@@ -57,9 +57,9 @@ def main() -> int:
 
     print()
     if all(results):
-        print("🎉 ALL GATES PASSED — clean-environment reproduction OK")
+        print("🎉 ALL GATES PASSED -- clean-environment reproduction OK")
         return 0
-    print("✗ SOME GATES FAILED — see output above")
+    print("✗ SOME GATES FAILED -- see output above")
     return 1
 
 

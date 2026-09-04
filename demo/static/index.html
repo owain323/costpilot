@@ -595,8 +595,8 @@ function renderPricingBasis(d){
       tr.appendChild(_el('td', 'price r', '$'+m.output_per_1m.toFixed(2)));
       tr.appendChild(_el('td', 'r', 'priced'));
     } else {
-      tr.appendChild(_el('td', 'na r', '—'));
-      tr.appendChild(_el('td', 'na r', '—'));
+      tr.appendChild(_el('td', 'na r', '-'));
+      tr.appendChild(_el('td', 'na r', '-'));
       tr.appendChild(_el('td', 'na r', 'not in table'));
     }
     tbody.appendChild(tr);
@@ -632,7 +632,7 @@ function renderCards(d){
     // Extract the target model from the suggestion text. The suggestion is
     // always shaped as: Change model from 'OLD' to 'NEW'  (or
     // Change model from 'OLD' to 'NEW', ...). Anchoring on `to '...'` is the
-    // only reliable way to get the *target* — the previous `first quoted
+    // only reliable way to get the *target* - the previous `first quoted
     // token` regex matched the *source* model and made every "from / to"
     // card visually identical (e.g. line 24 `-gpt-4o +gpt-4o`).
     let to = '?';

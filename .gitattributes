@@ -1,3 +1,1 @@
 # git hooks must stay LF: CRLF breaks sh execution on Windows ("$'\r': command not found")
-.githooks/pre-commit text eol=lf
-.githooks/pre-push text eol=lf
