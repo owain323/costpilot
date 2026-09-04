@@ -158,6 +158,14 @@ That shape is deliberate.
 - A change is executed only when the agent approves it and the rule allowlist
   accepts it. Two gates, because a model can be overconfident and a rule can
   be wrong; together they are conservative.
+- Why not skip the agent and use a rule like "approve any swap that saves
+  more than 30 percent"? Because the verdict is not the only deliverable.
+  A threshold returns a bit; it cannot produce the judgment record a human
+  reviews: what each candidate was, what was checked about it, and why a
+  borderline case goes to `ask_human` instead of an arbitrary cutoff. The
+  recorded run produced such a record for every call site it screened,
+  including the four it kept. The rules decide what is allowed to happen;
+  the agent writes down the reasoning.
 
 The same agent loop runs on local Ollama by default or on Amazon Bedrock via
 the provider factory (`COSTPILOT_MODEL_PROVIDER=bedrock`).
