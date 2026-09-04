@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }} — quality gates
+    name: Python ${{ matrix.python-version }} - quality gates
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
