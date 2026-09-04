@@ -57,7 +57,7 @@ keys, no network. The agentic loop uses Ollama by default.
 
 ```bash
 # 1. core + dev (lint/types/tests), enough for the static pipeline
-git clone git@github.com:owain323/costpilot.git && cd costpilot
+git clone https://github.com/owain323/costpilot.git && cd costpilot
 python -m venv .venv && source .venv/bin/activate
 
 # Option A: exact reproducibility from the provided lock file
